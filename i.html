@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> Secure Chat</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+      :root {
+        --primary: #4a6fa5;
+        --secondary: #166088;
+        --accent: #4fc3f7;
+        --error: #f44336;
+        --success: #4caf50;
+        --dark-bg: #0f0e17;
+        --gold: #ffd700;
+      }
+
+      body {
+        font-family: 'Roboto', sans-serif;
+        background: var(--dark-bg);
+        margin: 0;
+        padding: 20px;
+        min-height: 100vh;
+        color: #fff;
+        overflow-x: hidden;
+      }
+
+      .particles {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
+      }
+
+      .particles::before {
+        content: "";
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background: 
+            radial-gradient(circle at 20% 30%, rgba(79, 195, 247, 0.05) 0%, transparent 50%),
+            radial-gradient(circle at 80% 70%, rgba(244, 67, 54, 0.05) 0%, transparent 50%);
+        animation: particleMove 15s infinite alternate;
+      }
+
+      @keyframes particleMove {
+        0% { transform: translate(0, 0); }
+        100% { transform: translate(50px, 50px); }
+      }
+
+      .app-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        position: relative;
+        z-index: 1;
+      }
+
+      .app-header {
+        text-align: center;
+        margin-bottom: 40px;
+        animation: float 6s ease-in-out infinite;
+      }
+
+      @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-15px); }
+      }
+
+      .logo {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 3rem;
+        color: var(--accent);
+        text-shadow: 0 0 10px rgba(79, 195, 247, 0.5);
+        margin-bottom: 10px;
+      }
+
+      .logo span {
+        color: #fff;
+      }
+
+      .key-status {
+        display: inline-block;
+        padding: 8px 20px;
+        background: rgba(0,0,0,0.3);
+        border-radius: 20px;
+        font-family: 'Orbitron', sans-serif;
+        letter-spacing: 1px;
+      }
+
+      .main-content {
+        display: grid;
+        grid-template-columns: 1fr 1.5fr;
+        gap: 20px;
+      }
+
+      @media (max-width: 900px) {
+        .main-content {
+            grid-template-columns: 1fr;
+        }
+      }
+
+      .panel {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        transition: transform 0.3s;
+      }
+
+      .panel:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+      }
+
+      .panel h2 {
+        font-family: 'Orbitron', sans-serif;
+        color: var(--accent);
+        margin-top: 0;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+      }
+
+      .key-panel {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .btn-group {
+        display: flex;
+        gap: 10px;
+        margin: 15px 0;
+      }
+
+      .peer-key-section {
+        margin-top: 20px;
+      }
+
+      .peer-key-section h3 {
+        font-size: 1.1rem;
+        margin-bottom: 10px;
+        color: var(--accent);
+      }
+
+      .peer-key-status {
+        padding: 8px;
+        border-radius: 5px;
+        font-size: 0.9rem;
+        text-align: center;
+        margin-top: 10px;
+      }
+
+      .chat-panel {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .message-container {
+        flex: 1;
+        min-height: 300px;
+        max-height: 400px;
+        overflow-y: auto;
+        margin-bottom: 15px;
+        padding: 15px;
+        background: rgba(0,0,0,0.2);
+        border-radius: 10px;
+        border: 1px solid rgba(255,255,255,0.1);
+      }
+
+      .message {
+        padding: 12px 15px;
+        margin-bottom: 12px;
+        border-radius: 8px;
+        background: rgba(0,0,0,0.3);
+        animation: messageIn 0.4s ease-out;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .message::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+            90deg,
+            transparent,
+            rgba(79, 195, 247, 0.05),
+            transparent
+        );
+        pointer-events: none;
+      }
+
+      .message.system {
+        background: rgba(79, 195, 247, 0.15);
+        text-align: center;
+      }
+
+      .message.sent {
+        background: rgba(76, 175, 80, 0.15);
+        margin-left: 20%;
+        border-bottom-right-radius: 0;
+      }
+
+      .message.received {
+        background: rgba(33, 150, 243, 0.15);
+        margin-right: 20%;
+        border-bottom-left-radius: 0;
+      }
+
+      .message.key-display {
+        background: rgba(255, 215, 0, 0.15);
+        font-family: monospace;
+        font-size: 0.85rem;
+        white-space: pre-wrap;
+        word-break: break-all;
+        border-left: 3px solid var(--gold);
+        padding: 10px;
+        margin: 10px 0;
+        position: relative;
+      }
+
+      .message.key-display pre {
+        margin: 5px 0;
+        padding: 8px;
+        background: rgba(0,0,0,0.2);
+        border-radius: 4px;
+        overflow-x: auto;
+      }
+
+      .message.key-display small {
+        opacity: 0.7;
+        font-size: 0.75rem;
+        display: block;
+        margin-top: 5px;
+      }
+
+      .close-key-btn {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        background: transparent;
+        border: none;
+        color: rgba(255,255,255,0.7);
+        cursor: pointer;
+        font-size: 1rem;
+        padding: 2px 5px;
+        border-radius: 50%;
+        transition: all 0.2s;
+      }
+
+      .close-key-btn:hover {
+        color: white;
+        background: rgba(255,255,255,0.1);
+      }
+
+      @keyframes messageIn {
+        from { 
+            transform: translateY(20px);
+            opacity: 0;
+        }
+        to { 
+            transform: translateY(0);
+            opacity: 1;
+        }
+      }
+
+      .message-input {
+        display: flex;
+        gap: 10px;
+      }
+
+      .message-input textarea {
+        flex: 1;
+        min-height: 80px;
+      }
+
+      textarea {
+        width: 100%;
+        padding: 12px;
+        border-radius: 8px;
+        border: 1px solid rgba(255,255,255,0.2);
+        background: rgba(0,0,0,0.3);
+        color: #fff;
+        font-family: monospace;
+        resize: none;
+        margin-bottom: 15px;
+        transition: all 0.3s;
+      }
+
+      textarea:focus {
+        outline: none;
+        border-color: var(--accent);
+        box-shadow: 0 0 15px rgba(79, 195, 247, 0.3);
+      }
+
+      .btn-3d {
+        flex: 1;
+        padding: 12px;
+        border: none;
+        border-radius: 8px;
+        background: var(--primary);
+        color: white;
+        font-weight: bold;
+        cursor: pointer;
+        position: relative;
+        transform-style: preserve-3d;
+        transition: all 0.3s;
+        box-shadow: 0 5px 0 var(--secondary),
+                    0 10px 20px rgba(0,0,0,0.2);
+        font-family: 'Orbitron', sans-serif;
+        letter-spacing: 1px;
+      }
+
+      .btn-3d:hover {
+        background: #3a5a8f;
+        transform: translateY(2px);
+        box-shadow: 0 3px 0 var(--secondary),
+                    0 5px 10px rgba(0,0,0,0.2);
+      }
+
+      .btn-3d:active {
+        transform: translateY(5px);
+        box-shadow: 0 0 0 var(--secondary),
+                    0 2px 5px rgba(0,0,0,0.2);
+      }
+
+      .send-btn {
+        background: var(--success);
+        box-shadow: 0 5px 0 #2e7d32;
+      }
+
+      .send-btn:hover {
+        background: #43a047;
+      }
+
+      .clear-key-btn {
+        background: var(--error);
+        box-shadow: 0 5px 0 #c62828;
+      }
+
+      .clear-key-btn:hover {
+        background: #e53935;
+      }
+
+      .success {
+        color: var(--success);
+        background: rgba(76, 175, 80, 0.1);
+      }
+
+      .error {
+        color: var(--error);
+        background: rgba(244, 67, 54, 0.1);
+      }
+    </style>
+</head>
+<body>
+    <div class="particles"></div>
+    
+    <div class="app-container">
+        <header class="app-header">
+            <h1 class="logo">Secure<span> </span>Chat</h1>
+            <div class="key-status" id="keyStatus">🔓 Keys: Not generated</div>
+        </header>
+
+        <div class="main-content">
+            <!-- Key Panel -->
+            <div class="panel key-panel">
+                <h2>🔑 Key Management</h2>
+                <div class="btn-group">
+                    <button id="generateKeys" class="btn-3d">Generate Keys</button>
+                    <button id="exportKeys" class="btn-3d">Export Keys</button>
+                    <button id="clearPeerKey" class="btn-3d clear-key-btn">Clear Peer Key</button>
+                </div>
+                <textarea id="keyArea" readonly placeholder="Your keys will appear here"></textarea>
+                
+                <div class="peer-key-section">
+                    <h3>Peer's Public Key</h3>
+                    <textarea id="peerPublicKey" placeholder='Paste {"alg":"RSA-OAEP-256","e":"AQAB","n":"..."}'></textarea>
+                    <div class="peer-key-status" id="peerKeyStatus"></div>
+                </div>
+            </div>
+
+            <!-- Chat Panel -->
+            <div class="panel chat-panel">
+                <h2>💬 Secure Messages</h2>
+                <div class="message-container" id="messageContainer">
+                    <div class="message system">Welcome to Secure 3D Chat!</div>
+                    <div class="message system">1. Generate your keys</div>
+                    <div class="message system">2. Share public keys</div>
+                    <div class="message system">3. First message will include your private key</div>
+                </div>
+                
+                <div class="message-input">
+                    <textarea id="messageInput" placeholder="Type your message..."></textarea>
+                    <button id="sendMessage" class="btn-3d send-btn">Send</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+      class SecureChatCrypto {
+          constructor() {
+              this.keys = null;
+              this.peerPublicKey = null;
+              this.peerPrivateKey = null;
+              this.firstMessageSent = false;
+              this.peerKeyReceived = false;
+          }
+
+          async generateKeys() {
+              try {
+                  this.keys = await window.crypto.subtle.generateKey(
+                      {
+                          name: "RSA-OAEP",
+                          modulusLength: 2048,
+                          publicExponent: new Uint8Array([1, 0, 1]),
+                          hash: "SHA-256"
+                      },
+                      true,
+                      ["encrypt", "decrypt"]
+                  );
+                  return this.keys;
+              } catch (error) {
+                  console.error("Key generation error:", error);
+                  throw error;
+              }
+          }
+
+          async exportPublicKey() {
+              if (!this.keys) throw new Error("No keys generated");
+              
+              const publicKey = await window.crypto.subtle.exportKey(
+                  "jwk",
+                  this.keys.publicKey
+              );
+              
+              return publicKey;
+          }
+
+          async exportPrivateKey() {
+              if (!this.keys) throw new Error("No keys generated");
+              
+              const privateKey = await window.crypto.subtle.exportKey(
+                  "jwk",
+                  this.keys.privateKey
+              );
+              
+              return privateKey;
+          }
+
+          async importPeerPublicKey(publicKeyJwk) {
+              try {
+                  this.peerPublicKey = await window.crypto.subtle.importKey(
+                      "jwk",
+                      publicKeyJwk,
+                      { name: "RSA-OAEP", hash: "SHA-256" },
+                      true,
+                      ["encrypt"]
+                  );
+                  return this.peerPublicKey;
+              } catch (error) {
+                  console.error("Key import error:", error);
+                  throw error;
+              }
+          }
+
+          async importPeerPrivateKey(privateKeyJwk) {
+              try {
+                  this.peerPrivateKey = await window.crypto.subtle.importKey(
+                      "jwk",
+                      privateKeyJwk,
+                      { name: "RSA-OAEP", hash: "SHA-256" },
+                      true,
+                      ["decrypt"]
+                  );
+                  this.peerKeyReceived = true;
+                  return this.peerPrivateKey;
+              } catch (error) {
+                  console.error("Private key import error:", error);
+                  throw error;
+              }
+          }
+
+          clearPeerPrivateKey() {
+              this.peerPrivateKey = null;
+              this.peerKeyReceived = false;
+          }
+
+          async encryptMessage(message) {
+              if (!this.peerPublicKey) throw new Error("Peer public key not set");
+              
+              const encoded = new TextEncoder().encode(message);
+              const encrypted = await window.crypto.subtle.encrypt(
+                  { name: "RSA-OAEP" },
+                  this.peerPublicKey,
+                  encoded
+              );
+              
+              return this.arrayToBase64(new Uint8Array(encrypted));
+          }
+
+          async decryptMessage(encryptedBase64) {
+              if (!this.keys && !this.peerPrivateKey) throw new Error("No decryption keys available");
+              
+              const encrypted = this.base64ToArray(encryptedBase64);
+              try {
+                  const decrypted = await window.crypto.subtle.decrypt(
+                      { name: "RSA-OAEP" },
+                      this.keys?.privateKey || this.peerPrivateKey,
+                      encrypted
+                  );
+                  return new TextDecoder().decode(decrypted);
+              } catch (error) {
+                  console.error("Decryption error:", error);
+                  throw error;
+              }
+          }
+
+          arrayToBase64(array) {
+              return btoa(String.fromCharCode(...array));
+          }
+
+          base64ToArray(base64) {
+              return Uint8Array.from(atob(base64), c => c.charCodeAt(0));
+          }
+      }
+
+      document.addEventListener('DOMContentLoaded', () => {
+          const crypto = new SecureChatCrypto();
+          
+          // DOM Elements
+          const elements = {
+              keyStatus: document.getElementById('keyStatus'),
+              keyArea: document.getElementById('keyArea'),
+              peerPublicKey: document.getElementById('peerPublicKey'),
+              peerKeyStatus: document.getElementById('peerKeyStatus'),
+              messageContainer: document.getElementById('messageContainer'),
+              messageInput: document.getElementById('messageInput'),
+              generateKeysBtn: document.getElementById('generateKeys'),
+              exportKeysBtn: document.getElementById('exportKeys'),
+              sendMessageBtn: document.getElementById('sendMessage'),
+              clearPeerKeyBtn: document.getElementById('clearPeerKey')
+          };
+
+          // Track all key displays for hiding
+          const keyDisplays = [];
+
+          // Event Listeners
+          elements.generateKeysBtn.addEventListener('click', generateKeys);
+          elements.exportKeysBtn.addEventListener('click', exportKeys);
+          elements.sendMessageBtn.addEventListener('click', sendMessage);
+          elements.peerPublicKey.addEventListener('change', importPeerKey);
+          elements.clearPeerKeyBtn.addEventListener('click', clearPeerKey);
+          
+          // Allow sending with Enter key
+          elements.messageInput.addEventListener('keydown', (e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  sendMessage();
+              }
+          });
+
+          // Core Functions
+          async function generateKeys() {
+              try {
+                  elements.keyArea.value = "Generating keys...";
+                  await crypto.generateKeys();
+                  const publicKey = await crypto.exportPublicKey();
+                  elements.keyArea.value = JSON.stringify(publicKey, null, 2);
+                  updateKeyStatus();
+                  addMessage("🔐 Encryption keys generated successfully!", "system");
+                  addMessage("📤 Share your public key above with your peer", "system");
+                  animateButton(elements.generateKeysBtn);
+              } catch (error) {
+                  addMessage(`❌ Error generating keys: ${error.message}`, "error");
+              }
+          }
+
+          async function exportKeys() {
+              try {
+                  const publicKey = await crypto.exportPublicKey();
+                  elements.keyArea.value = JSON.stringify(publicKey, null, 2);
+                  addMessage("📤 Public key copied to key area", "system");
+                  animateButton(elements.exportKeysBtn);
+              } catch (error) {
+                  addMessage(`❌ Error exporting key: ${error.message}`, "error");
+              }
+          }
+
+          async function importPeerKey() {
+              try {
+                  const publicKeyJwk = JSON.parse(elements.peerPublicKey.value);
+                  await crypto.importPeerPublicKey(publicKeyJwk);
+                  elements.peerKeyStatus.textContent = "✅ Key imported successfully";
+                  elements.peerKeyStatus.className = "peer-key-status success";
+                  addMessage("🔑 Peer's public key imported - ready to chat!", "system");
+              } catch (error) {
+                  elements.peerKeyStatus.textContent = "❌ Invalid key format";
+                  elements.peerKeyStatus.className = "peer-key-status error";
+              }
+          }
+
+          async function clearPeerKey() {
+              crypto.clearPeerPrivateKey();
+              addMessage("🗑️ Peer's private key cleared from memory", "system");
+              animateButton(elements.clearPeerKeyBtn);
+              
+              // Hide all key displays
+              keyDisplays.forEach(display => {
+                  if (display && display.style) {
+                      display.style.display = 'none';
+                  }
+              });
+              keyDisplays.length = 0; // Clear the array
+          }
+
+          async function sendMessage() {
+              const message = elements.messageInput.value.trim();
+              if (!message) return;
+
+              try {
+                  let messageToSend = message;
+                  let privateKeyToShow = null;
+                  
+                  // If first message, include private key
+                  if (!crypto.firstMessageSent && !crypto.peerKeyReceived) {
+                      const privateKey = await crypto.exportPrivateKey();
+                      privateKeyToShow = privateKey;
+                      messageToSend = JSON.stringify({
+                          message: message,
+                          privateKey: privateKey,
+                          isFirstMessage: true
+                      });
+                      crypto.firstMessageSent = true;
+                  }
+
+                  // Show user's message
+                  addMessage(`You: ${message}`, "sent");
+                  
+                  // Show the private key that was sent (if first message)
+                  if (privateKeyToShow) {
+                      const keyDisplay = document.createElement('div');
+                      keyDisplay.className = 'message key-display';
+                      keyDisplay.innerHTML = `
+                          <button class="close-key-btn" title="Hide private key">
+                              <i class="fas fa-times"></i>
+                          </button>
+                          <strong>🔒 Private Key Included in This Message:</strong>
+                          <pre>${JSON.stringify(privateKeyToShow, null, 2)}</pre>
+                          <small>This key was encrypted with peer's public key before transmission</small>
+                      `;
+                      elements.messageContainer.appendChild(keyDisplay);
+                      keyDisplays.push(keyDisplay); // Add to tracking array
+                      
+                      // Add click handler for close button
+                      keyDisplay.querySelector('.close-key-btn').addEventListener('click', () => {
+                          keyDisplay.style.display = 'none';
+                      });
+                  }
+
+                  const encrypted = await crypto.encryptMessage(messageToSend);
+                  
+                  // Simulate receiving response
+                  setTimeout(async () => {
+                      try {
+                          const decrypted = await crypto.decryptMessage(encrypted);
+                          let responseMessage = decrypted;
+                          
+                          // Check if this contains a private key
+                          try {
+                              const parsed = JSON.parse(decrypted);
+                              if (parsed.isFirstMessage && parsed.privateKey) {
+                                  await crypto.importPeerPrivateKey(parsed.privateKey);
+                                  responseMessage = parsed.message;
+                                  
+                                  // Show received private key
+                                  const keyDisplay = document.createElement('div');
+                                  keyDisplay.className = 'message key-display';
+                                  keyDisplay.innerHTML = `
+                                      <button class="close-key-btn" title="Hide private key">
+                                          <i class="fas fa-times"></i>
+                                      </button>
+                                      <strong>🔑 Private Key Received From Peer:</strong>
+                                      <pre>${JSON.stringify(parsed.privateKey, null, 2)}</pre>
+                                      <small>This key has been stored securely for decrypting future messages</small>
+                                  `;
+                                  elements.messageContainer.appendChild(keyDisplay);
+                                  keyDisplays.push(keyDisplay); // Add to tracking array
+                                  
+                                  // Add click handler for close button
+                                  keyDisplay.querySelector('.close-key-btn').addEventListener('click', () => {
+                                      keyDisplay.style.display = 'none';
+                                  });
+                                  
+                                  addMessage("System: Peer's private key successfully imported", "system");
+                              }
+                          } catch (e) { /* Not JSON, ignore */ }
+                          
+                          addMessage(`Friend: ${responseMessage}`, "received");
+                      } catch (error) {
+                          addMessage(`❌ Decryption failed: ${error.message}`, "error");
+                      }
+                      elements.messageContainer.scrollTop = elements.messageContainer.scrollHeight;
+                  }, 1000 + Math.random() * 1000);
+
+                  elements.messageInput.value = '';
+                  elements.messageContainer.scrollTop = elements.messageContainer.scrollHeight;
+              } catch (error) {
+                  addMessage(`❌ Error sending message: ${error.message}`, "error");
+              }
+          }
+
+          // Helper Functions
+          function addMessage(text, type) {
+              const message = document.createElement('div');
+              message.className = `message ${type}`;
+              message.textContent = text;
+              elements.messageContainer.appendChild(message);
+              elements.messageContainer.scrollTop = elements.messageContainer.scrollHeight;
+          }
+
+          function updateKeyStatus() {
+              elements.keyStatus.textContent = "🔑 Keys: Generated";
+              elements.keyStatus.style.color = "#4CAF50";
+          }
+
+          function animateButton(button) {
+              button.classList.add('active');
+              setTimeout(() => button.classList.remove('active'), 300);
+          }
+      });
+    </script>
+</body>
+</html>
